@@ -1,11 +1,35 @@
 use std::fs;
+use std::{ iter, mem };
 use std::io::BufReader;
+use std::{iter, mem};
 use std::io::prelude::*;
 use std::time::{Duration, SystemTime};
 use clap::{App, AppSettings, Arg};
 use futures::{stream, StreamExt};
 use reqwest::Client;
 
+trait IdentifyFirstLast: Iterator + Sized {
+    fn identify_first_last(self) -> Iter<Self>;
+}
+
+impl<I> IdentifyFirstLast for I where I: Iterator {
+    fn identify_first_last(self) -> Iter<Self> {
+        Iter(true, self.peekable())
+    }
+}
+
+struct Iter<I>(bool, iter::Peekable<I>) where I: Iterator;
+
+impl<I> Iterator for Iter<I> where I: Iterator {
+    type Item = (bool, bool, I::Item);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let first = mem::replace(&mut self.0, false);
+        self.1.next().map(|e| (first, self.1.peek().is_none(), e))
+    }
+}
+
+    
 struct User{
     username: String,
     time_stamp:  SystemTime,
@@ -65,6 +89,11 @@ fn get_files () -> (Vec<User>, Vec<String>) {
 }
 
 fn requester (client: &Client, mut users: Vec<User>, passwords: Vec<String>){
+    loop {
+        for user in users {
+            if user.id
+        }
+    }
     
 }
 
