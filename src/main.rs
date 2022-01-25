@@ -91,7 +91,7 @@ fn get_files () -> (Vec<User>, Vec<String>) {
 fn requester (client: &Client, users: &mut Vec<User>, passwords: Vec<String>){
     let finished  = users.last().unwrap().index_of_last_pass == passwords.len() as i32;
     let len_pass = passwords.len() as i32;
-    while !finished {
+    /* while !finished {
         let start_time = SystemTime::now(); 
         
         for user in &mut *users {
@@ -106,7 +106,16 @@ fn requester (client: &Client, users: &mut Vec<User>, passwords: Vec<String>){
             user.set_index(count);
         }
     thread::sleep(time::Duration::from_secs(2));
+    } */
+    let mut count = 0;
+    for password in passwords{
+        count += 1;
+        if count % 14 == 0 { thread::sleep(time::Duration::from_secs(10))}
+        for user in &mut *users{
+            println!("trying user {} with password {} ", &user.username, password)
+        }
     }
+
 }
 
 #[tokio::main]
