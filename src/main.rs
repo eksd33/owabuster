@@ -1,8 +1,8 @@
 use std::fs;
 use std::{ iter, mem };
 use std::io::BufReader;
-use std::{iter, mem};
 use std::io::prelude::*;
+use std::{thread, time};
 use std::time::{Duration, SystemTime};
 use clap::{App, AppSettings, Arg};
 use futures::{stream, StreamExt};
@@ -29,17 +29,17 @@ impl<I> Iterator for Iter<I> where I: Iterator {
     }
 }
 
-    
+#[derive(Debug,Clone)]
 struct User{
     username: String,
     time_stamp:  SystemTime,
-    index_of_last_pass: i64,
+    index_of_last_pass: i32
 }
 impl User {
     fn set_time_stamp(&mut self, new_time:SystemTime){
         self.time_stamp = new_time;
     }
-    fn set_index (&mut self, new_index: i64){
+    fn set_index (&mut self, new_index: i32){
         self.index_of_last_pass = new_index;
     }
 }
@@ -47,7 +47,7 @@ impl User {
 pub fn initialize () -> App<'static, 'static>{
     let mut cli_args = App::new("Owa buster")
     .version("0.01")
-    .author("xD")
+    .author("xD") 
     .arg(Arg::with_name("users")
         .short("u")
         .required(true)
@@ -88,22 +88,34 @@ fn get_files () -> (Vec<User>, Vec<String>) {
     (users, passwords)
 }
 
-fn requester (client: &Client, mut users: Vec<User>, passwords: Vec<String>){
-    loop {
-        for user in users {
-            if user.id
+fn requester (client: &Client, users: &mut Vec<User>, passwords: Vec<String>){
+    let finished  = users.last().unwrap().index_of_last_pass == passwords.len() as i32;
+    let len_pass = passwords.len() as i32;
+    while !finished {
+        let start_time = SystemTime::now(); 
+        
+        for user in &mut *users {
+            let mut count: i32 = 0;
+            //print!("got here user: {} {:?} ", user.username, range);
+            for i in user.index_of_last_pass..passwords.len() as i32{
+                if count >= 14 {break};
+                count += 1;
+                println!("Trying user{} with password {} ", user.username, passwords[i as usize])
+                
+            }
+            user.set_index(count);
         }
+    thread::sleep(time::Duration::from_secs(2));
     }
-    
 }
 
 #[tokio::main]
 async fn main() {
-    let (users, passwords) = get_files();
+    let ( mut users, passwords) = get_files();
 
     let client = Client::new();
 
-    requester(&client, users, passwords);
+    requester(&client,&mut users, passwords);
 
 
 }
